@@ -1,0 +1,8 @@
+C:\Users\fatih.kurt\source\repos\rateService\rateService\bin\Debug\rateService.exe.config
+C:\Users\fatih.kurt\source\repos\rateService\rateService\bin\Debug\rateService.exe
+C:\Users\fatih.kurt\source\repos\rateService\rateService\bin\Debug\rateService.pdb
+C:\Users\fatih.kurt\source\repos\rateService\rateService\obj\Debug\rateService.csproj.AssemblyReference.cache
+C:\Users\fatih.kurt\source\repos\rateService\rateService\obj\Debug\rateService.csproj.SuggestedBindingRedirects.cache
+C:\Users\fatih.kurt\source\repos\rateService\rateService\obj\Debug\rateService.csproj.CoreCompileInputs.cache
+C:\Users\fatih.kurt\source\repos\rateService\rateService\obj\Debug\rateService.exe
+C:\Users\fatih.kurt\source\repos\rateService\rateService\obj\Debug\rateService.pdb
