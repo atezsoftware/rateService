@@ -17,22 +17,8 @@ public class CurrencyFetcher
         string url = GetUrl();
         List<Currency> currencies = FetchCurrencies(url);
         WriteToFile(currencies);
-        string filePath = @"C:\Kurlar\kurlar.txt";
-        using (StreamWriter writer = new StreamWriter(filePath, true))
-        {
-            foreach (var currency in currencies)
-            {
-                writer.WriteLine("txt");
-            }
-        }
         WriteToDatabase(currencies);
-        using (StreamWriter writer = new StreamWriter(filePath, true))
-        {
-            foreach (var currency in currencies)
-            {
-                writer.WriteLine("db");
-            }
-        }
+       
     }
 
     private static string GetUrl()

@@ -2444,3 +2444,12 @@ Affected parameters are:
    logtoconsole = 
    logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
    assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Uninstalling assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Removing EventLog source CurrencyFetcherService.
+Service CurrencyFetcherService is being removed from the system...
+Service CurrencyFetcherService was successfully removed from the system.
+Attempt to stop service CurrencyFetcherService.
