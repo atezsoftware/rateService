@@ -17,7 +17,22 @@ public class CurrencyFetcher
         string url = GetUrl();
         List<Currency> currencies = FetchCurrencies(url);
         WriteToFile(currencies);
+        string filePath = @"C:\Kurlar\kurlar.txt";
+        using (StreamWriter writer = new StreamWriter(filePath, true))
+        {
+            foreach (var currency in currencies)
+            {
+                writer.WriteLine("txt");
+            }
+        }
         WriteToDatabase(currencies);
+        using (StreamWriter writer = new StreamWriter(filePath, true))
+        {
+            foreach (var currency in currencies)
+            {
+                writer.WriteLine("db");
+            }
+        }
     }
 
     private static string GetUrl()
@@ -53,14 +68,30 @@ public class CurrencyFetcher
 
     private static void WriteToFile(List<Currency> currencies)
     {
-        string filePath = @"C:\Kurlar\kurlar.txt";
-        using (StreamWriter writer = new StreamWriter(filePath, true))
+        try
         {
-            foreach (var currency in currencies)
+            string filePath = @"C:\Kurlar\kurlar.txt";
+            using (StreamWriter writer = new StreamWriter(filePath, true))
             {
-                writer.WriteLine($"{DateTime.Now}: {currency.Code} - {currency.BuyRate} - {currency.SellRate} - {currency.BankNoteBuying} - {currency.BankNoteSelling}");
+                foreach (var currency in currencies)
+                {
+                    writer.WriteLine($"{DateTime.Now}: {currency.Code} - {currency.BuyRate} - {currency.SellRate} - {currency.BankNoteBuying} - {currency.BankNoteSelling}");
+                }
             }
         }
+        catch (Exception e)
+        {
+            string filePath = @"C:\Kurlar\kurlar.txt";
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                foreach (var currency in currencies)
+                {
+                    writer.WriteLine(e);
+                }
+            }
+
+        }
+        
     }
 
 
