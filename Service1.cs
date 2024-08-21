@@ -24,7 +24,7 @@ namespace rateService
         protected override void OnStart(string[] args)
         {
             timer = new Timer();
-            timer.Interval = 1000;
+            timer.Interval = 900000; 
             timer.Elapsed += new ElapsedEventHandler(this.OnTimer);
             timer.Start();
         }
