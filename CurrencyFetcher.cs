@@ -18,7 +18,7 @@ public class CurrencyFetcher
         List<Currency> currencies = FetchCurrencies(url);
         WriteToFile(currencies);
         WriteToDatabase(currencies);
-       
+
     }
 
     private static string GetUrl()
@@ -77,7 +77,7 @@ public class CurrencyFetcher
             }
 
         }
-        
+
     }
 
 
@@ -89,6 +89,7 @@ public class CurrencyFetcher
         {
         ConfigurationManager.ConnectionStrings["SEB"].ConnectionString,
         ConfigurationManager.ConnectionStrings["SEC"].ConnectionString,
+        ConfigurationManager.ConnectionStrings["SEC2025"].ConnectionString,
         ConfigurationManager.ConnectionStrings["SECTEST"].ConnectionString
         };
 
@@ -155,17 +156,17 @@ public class CurrencyFetcher
                     mail.From = new MailAddress(addressFrom, displayNameFrom);
                     mail.To.Add(new MailAddress(addressTo, displayNameTo));
                     mail.Subject = "Kurlar Alınamamıştır Lütfen Kontrol Ediniz!";
-                    mail.Body = "Hata Mesajı:"+ connectionString.Substring(connectionString.IndexOf("Catalog=") + 8, 
-                                                connectionString.IndexOf(";", connectionString.IndexOf("Catalog="))-
-                                                connectionString.IndexOf("Catalog=")-8) + 
+                    mail.Body = "Hata Mesajı:" + connectionString.Substring(connectionString.IndexOf("Catalog=") + 8,
+                                                connectionString.IndexOf(";", connectionString.IndexOf("Catalog=")) -
+                                                connectionString.IndexOf("Catalog=") - 8) +
                                                 $" {ex.Message}\n\nStack Trace:\n{ex.StackTrace}";
                     mail.IsBodyHtml = true;
 
                     SmtpClient smtpClient = new SmtpClient(smtpClientHost, smtpClientPort);
                     smtpClient.UseDefaultCredentials = false;
                     smtpClient.Credentials = new NetworkCredential(smtpUserName, smtpPassword);
-                    smtpClient.EnableSsl = false;  
-                    smtpClient.Host= smtpClientHost;
+                    smtpClient.EnableSsl = false;
+                    smtpClient.Host = smtpClientHost;
 
                     smtpClient.Send(mail);
                 }
