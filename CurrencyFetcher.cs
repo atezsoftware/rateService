@@ -89,7 +89,6 @@ public class CurrencyFetcher
         {
         ConfigurationManager.ConnectionStrings["SEB"].ConnectionString,
         ConfigurationManager.ConnectionStrings["SEC"].ConnectionString,
-        ConfigurationManager.ConnectionStrings["SEC2025"].ConnectionString,
         ConfigurationManager.ConnectionStrings["SECTEST"].ConnectionString
         };
 
