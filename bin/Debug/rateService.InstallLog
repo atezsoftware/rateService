@@ -2474,3 +2474,124 @@ Affected parameters are:
 Removing EventLog source CurrencyFetcherService.
 Service CurrencyFetcherService is being removed from the system...
 Service CurrencyFetcherService was successfully removed from the system.
+Installing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Installing service CurrencyFetcherService...
+Service CurrencyFetcherService has been successfully installed.
+Creating EventLog source CurrencyFetcherService in log Application...
+Committing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Uninstalling assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Removing EventLog source CurrencyFetcherService.
+Service CurrencyFetcherService is being removed from the system...
+Service CurrencyFetcherService was successfully removed from the system.
+Attempt to stop service CurrencyFetcherService.
+Installing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Installing service CurrencyFetcherService...
+Service CurrencyFetcherService has been successfully installed.
+Creating EventLog source CurrencyFetcherService in log Application...
+Committing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Uninstalling assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Removing EventLog source CurrencyFetcherService.
+Service CurrencyFetcherService is being removed from the system...
+Service CurrencyFetcherService was successfully removed from the system.
+Attempt to stop service CurrencyFetcherService.
+Installing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Installing service CurrencyFetcherService...
+Service CurrencyFetcherService has been successfully installed.
+Creating EventLog source CurrencyFetcherService in log Application...
+Committing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Uninstalling assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Removing EventLog source CurrencyFetcherService.
+Service CurrencyFetcherService is being removed from the system...
+Service CurrencyFetcherService was successfully removed from the system.
+Attempt to stop service CurrencyFetcherService.
+Installing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Installing service CurrencyFetcherService...
+Service CurrencyFetcherService has been successfully installed.
+Creating EventLog source CurrencyFetcherService in log Application...
+Committing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Installing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Installing service CurrencyFetcherService...
+Creating EventLog source CurrencyFetcherService in log Application...
+Rolling back assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Restoring event log to previous state for source CurrencyFetcherService.
+Uninstalling assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Removing EventLog source CurrencyFetcherService.
+Service CurrencyFetcherService is being removed from the system...
+Service CurrencyFetcherService was successfully removed from the system.
+Installing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Installing service CurrencyFetcherService...
+Service CurrencyFetcherService has been successfully installed.
+Creating EventLog source CurrencyFetcherService in log Application...
+Committing assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Uninstalling assembly 'C:\SecSoftware\rateService\bin\Debug\rateService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\SecSoftware\rateService\bin\Debug\rateService.InstallLog
+   assemblypath = C:\SecSoftware\rateService\bin\Debug\rateService.exe
+Removing EventLog source CurrencyFetcherService.
+Service CurrencyFetcherService is being removed from the system...
+Service CurrencyFetcherService was successfully removed from the system.
