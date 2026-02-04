@@ -85,14 +85,30 @@ public class CurrencyFetcher
 
     private static void WriteToDatabase(List<Currency> currencies)
     {
-        var connectionStrings = new string[]
-        {
-        ConfigurationManager.ConnectionStrings["SEB"].ConnectionString,
-        ConfigurationManager.ConnectionStrings["SEC"].ConnectionString,
-        ConfigurationManager.ConnectionStrings["SECTEST"].ConnectionString,
-        ConfigurationManager.ConnectionStrings["SEBTEST"].ConnectionString
+        var connectionStringNames = new string[] { "SEB", "SEC", "SECTEST", "SEBTEST", "SecLTT", "SecBG2025" };
+        var connectionStrings = new List<string>();
 
-        };
+        foreach (var name in connectionStringNames)
+        {
+            var connStringSetting = ConfigurationManager.ConnectionStrings[name];
+            if (connStringSetting != null && !string.IsNullOrEmpty(connStringSetting.ConnectionString))
+            {
+                connectionStrings.Add(connStringSetting.ConnectionString);
+            }
+            else
+            {
+                // Bulunamayan connection string'i logla
+                string filePath = @"C:\Kurlar\logs.txt";
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(filePath, true))
+                    {
+                        writer.WriteLine($"{DateTime.Now}: Warning - Connection string '{name}' not found in configuration.");
+                    }
+                }
+                catch { /* Loglama hatası sessizce yutulsun */ }
+            }
+        }
 
         foreach (var connectionString in connectionStrings)
         {
@@ -182,7 +198,6 @@ public class CurrencyFetcher
             }
         }
     }
-
 }
 
 public class Currency
