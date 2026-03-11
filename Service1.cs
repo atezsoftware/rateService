@@ -46,8 +46,36 @@ namespace rateService
 
         private void OnTimer(object sender, ElapsedEventArgs e)
         {
+            try
+            {
+                CurrencyFetcher.FetchAndWriteRates();
+            }
+            catch (Exception ex)
+            {
+                LogError("CurrencyFetcher hatası: " + ex.Message);
+            }
 
-            CurrencyFetcher.FetchAndWriteRates();
+            try
+            {
+                MetalFetcher.FetchAndWriteMetals();
+            }
+            catch (Exception ex)
+            {
+                LogError("MetalFetcher hatası: " + ex.Message);
+            }
+        }
+
+        private void LogError(string message)
+        {
+            try
+            {
+                string filePath = @"C:\Kurlar\logs.txt";
+                using (StreamWriter writer = new StreamWriter(filePath, true))
+                {
+                    writer.WriteLine($"{DateTime.Now}: {message}");
+                }
+            }
+            catch { }
         }
     }
 }
