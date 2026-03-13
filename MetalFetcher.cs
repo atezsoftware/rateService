@@ -8,14 +8,19 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 public class MetalFetcher
 {
     private const string BorsaUrl = "https://www.borsaistanbul.com/daily-bulletin.php?op=fetchBultenVerileri&lang=tr";
+    private static readonly string LogFilePath = ConfigurationManager.AppSettings["LogFilePath"] ?? @"C:\Kurlar\logs.txt";
+    private const int RequestTimeoutMs = 30000;
 
     public static void FetchAndWriteMetals()
     {
+        NetRuntime.Ensure();
+
         List<Currency> metals = FetchMetals();
         if (metals != null && metals.Count > 0)
         {
@@ -24,17 +29,52 @@ public class MetalFetcher
         }
     }
 
+    private static void AppendLog(string message)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(LogFilePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            using (StreamWriter writer = new StreamWriter(LogFilePath, true, Encoding.UTF8))
+            {
+                writer.WriteLine(message);
+            }
+        }
+        catch
+        {
+        }
+    }
+
     private static List<Currency> FetchMetals()
     {
-        string xml;
+        XDocument document;
         HttpWebRequest request = (HttpWebRequest)WebRequest.Create(BorsaUrl);
+        request.Method = "GET";
+        request.Timeout = RequestTimeoutMs;
+        request.ReadWriteTimeout = RequestTimeoutMs;
         request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-        using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-        using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
+        request.KeepAlive = false;
+        request.UserAgent = "rateService";
+        request.ConnectionGroupName = Guid.NewGuid().ToString("N");
+        try
         {
-            xml = reader.ReadToEnd();
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            using (var stream = response.GetResponseStream())
+            {
+                var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
+                using (var xmlReader = XmlReader.Create(stream, settings))
+                {
+                    document = XDocument.Load(xmlReader);
+                }
+            }
         }
-        XDocument document = XDocument.Parse(xml);
+        finally
+        {
+            try { request.ServicePoint.CloseConnectionGroup(request.ConnectionGroupName); } catch { }
+        }
+
 
         // Tarih kontrolü
         var gun1 = document.Descendants("gun1").FirstOrDefault();
@@ -128,11 +168,7 @@ public class MetalFetcher
         }
         catch (Exception e)
         {
-            string filePath = @"C:\Kurlar\logs.txt";
-            using (StreamWriter writer = new StreamWriter(filePath, true))
-            {
-                writer.WriteLine($"{DateTime.Now}: Metal WriteToFile Error - {e.Message}");
-            }
+            AppendLog($"{DateTime.Now}: Metal WriteToFile Error - {e.Message}");
         }
     }
 
@@ -150,15 +186,7 @@ public class MetalFetcher
             }
             else
             {
-                string filePath = @"C:\Kurlar\logs.txt";
-                try
-                {
-                    using (StreamWriter writer = new StreamWriter(filePath, true))
-                    {
-                        writer.WriteLine($"{DateTime.Now}: Warning - Connection string '{name}' not found in configuration.");
-                    }
-                }
-                catch { }
+                AppendLog($"{DateTime.Now}: Warning - Connection string '{name}' not found in configuration.");
             }
         }
 
@@ -205,11 +233,7 @@ public class MetalFetcher
             }
             catch (Exception ex)
             {
-                string filePath = @"C:\Kurlar\logs.txt";
-                using (StreamWriter writer = new StreamWriter(filePath, true))
-                {
-                    writer.WriteLine($"Metal Exception: {ex.Message}");
-                }
+                AppendLog($"{DateTime.Now}: Metal Exception: {ex.Message}");
 
                 string addressFrom = ConfigurationManager.AppSettings["AddressFrom"];
                 string displayNameFrom = ConfigurationManager.AppSettings["DisplayNameFrom"];
@@ -242,10 +266,7 @@ public class MetalFetcher
                 }
                 catch (Exception emailEx)
                 {
-                    using (StreamWriter writer = new StreamWriter(filePath, true))
-                    {
-                        writer.WriteLine($"Failed to send email: {emailEx.Message}");
-                    }
+                    AppendLog($"{DateTime.Now}: Failed to send email: {emailEx.Message}");
                 }
             }
         }

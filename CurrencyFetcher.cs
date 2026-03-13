@@ -9,14 +9,20 @@ using System.Xml.Linq;
 using System.Configuration;
 using System.Net.Mail;
 using System.Text;
+using System.Xml;
 
 public class CurrencyFetcher
 {
+    private static readonly string LogFilePath = ConfigurationManager.AppSettings["LogFilePath"] ?? @"C:\Kurlar\logs.txt";
+    private const int RequestTimeoutMs = 30000;
+
     public static void FetchAndWriteRates()
     {
+        NetRuntime.Ensure();
+
         string url = GetUrl();
         List<Currency> currencies = FetchCurrencies(url);
-        WriteToFile(currencies);
+       // WriteToFile(currencies);
         WriteToDatabase(currencies);
 
     }
@@ -37,7 +43,7 @@ public class CurrencyFetcher
 
     private static List<Currency> FetchCurrencies(string url)
     {
-        XDocument document = XDocument.Load(url);
+        XDocument document = LoadXml(url);
         var result = document.Descendants("Currency")
             .Where(v => v.Element("ForexBuying") != null && v.Element("ForexBuying").Value.Length > 0)
             .Select(v => new Currency
@@ -51,36 +57,53 @@ public class CurrencyFetcher
         return result;
     }
 
+    private static XDocument LoadXml(string url)
+    {
+        var request = (HttpWebRequest)WebRequest.Create(url);
+        request.Method = "GET";
+        request.Timeout = RequestTimeoutMs;
+        request.ReadWriteTimeout = RequestTimeoutMs;
+        request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+        request.KeepAlive = false;
+        request.UserAgent = "rateService";
+        request.ConnectionGroupName = Guid.NewGuid().ToString("N");
 
-    private static void WriteToFile(List<Currency> currencies)
+        try
+        {
+            using (var response = (HttpWebResponse)request.GetResponse())
+            using (var stream = response.GetResponseStream())
+            {
+                var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
+                using (var xmlReader = XmlReader.Create(stream, settings))
+                {
+                    return XDocument.Load(xmlReader);
+                }
+            }
+        }
+        finally
+        {
+            try { request.ServicePoint.CloseConnectionGroup(request.ConnectionGroupName); } catch { }
+        }
+    }
+
+    private static void AppendLog(string message)
     {
         try
         {
-            string filePath = @"C:\Kurlar\kurlar.txt";
-            using (StreamWriter writer = new StreamWriter(filePath, true))
+            var dir = Path.GetDirectoryName(LogFilePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            using (StreamWriter writer = new StreamWriter(LogFilePath, true, Encoding.UTF8))
             {
-                foreach (var currency in currencies)
-                {
-                    writer.WriteLine($"{DateTime.Now}: {currency.Code} - {currency.BuyRate} - {currency.SellRate} - {currency.BankNoteBuying} - {currency.BankNoteSelling}");
-                }
+                writer.WriteLine(message);
             }
         }
-        catch (Exception e)
+        catch
         {
-            string filePath = @"C:\Kurlar\kurlar.txt";
-            using (StreamWriter writer = new StreamWriter(filePath, true))
-            {
-                foreach (var currency in currencies)
-                {
-                    writer.WriteLine(e);
-                }
-            }
-
+            // loglama hatası sessizce yutulsun
         }
-
     }
-
-
 
 
     private static void WriteToDatabase(List<Currency> currencies)
@@ -98,15 +121,7 @@ public class CurrencyFetcher
             else
             {
                 // Bulunamayan connection string'i logla
-                string filePath = @"C:\Kurlar\logs.txt";
-                try
-                {
-                    using (StreamWriter writer = new StreamWriter(filePath, true))
-                    {
-                        writer.WriteLine($"{DateTime.Now}: Warning - Connection string '{name}' not found in configuration.");
-                    }
-                }
-                catch { /* Loglama hatası sessizce yutulsun */ }
+                AppendLog($"{DateTime.Now}: Warning - Connection string '{name}' not found in configuration.");
             }
         }
 
@@ -118,33 +133,41 @@ public class CurrencyFetcher
                 {
                     connection.Open();
 
-                    string daycontrolQuery = "IF NOT EXISTS (SELECT 1 FROM sbr_doviz WHERE cast(tarih as date) = CAST(GETDATE() AS DATE)) BEGIN INSERT INTO sbr_doviz (dovizid, tarih, onay) VALUES (@dovizid, @Date, 1) END";
-                    using (SqlCommand daycontrolCommand = new SqlCommand(daycontrolQuery, connection))
+                    string insertMasterQuery = "INSERT INTO sbr_doviz (dovizid, tarih, onay) VALUES (@dovizid, @Date, 1)";
+                    using (SqlCommand insertMasterCommand = new SqlCommand(insertMasterQuery, connection))
                     {
                         var dovizid = Guid.NewGuid();
-                        daycontrolCommand.Parameters.AddWithValue("@dovizid", dovizid);
-                        daycontrolCommand.Parameters.AddWithValue("@Date", DateTime.Today);
+                        insertMasterCommand.Parameters.AddWithValue("@dovizid", dovizid);
+                        insertMasterCommand.Parameters.AddWithValue("@Date", DateTime.Today);
 
-                        int rowsAffected = daycontrolCommand.ExecuteNonQuery();
-
-                        if (rowsAffected > 0)
+                        try
                         {
-                            foreach (var currency in currencies)
+                            insertMasterCommand.ExecuteNonQuery();
+                        }
+                        catch (SqlException sqlEx) when (sqlEx.Number == 2627 || sqlEx.Number == 2601)
+                        {
+                            // Bugünün kaydı zaten varsa (muhtemelen MetalFetcher oluşturdu ya da servis tekrar çalıştı)
+                            // devam edip detay kayıtlarını ekleyelim.
+                        }
+
+                        foreach (var currency in currencies)
+                        {
+                            string query = @"IF NOT EXISTS (SELECT 1 FROM sbr_dovizdetay WHERE dovizkod = @Code AND cast(tarih as date) = @Date)
+BEGIN
+    INSERT INTO sbr_dovizdetay (dovizdetayid, tarih, dovizalis, dovizsatis, dovizkod, efektifalis, efektifsatis, kayitgiristarih)
+    VALUES (@id, @Date, @BuyRate, @SellRate, @Code, @BankNoteBuying, @BankNoteSelling, cast(getdate() as date))
+END";
+                            using (SqlCommand command = new SqlCommand(query, connection))
                             {
-                                string query = "INSERT INTO sbr_dovizdetay (dovizdetayid, tarih, dovizalis, dovizsatis, dovizkod, efektifalis, efektifsatis, kayitgiristarih) VALUES (@id, @Date, @BuyRate, @SellRate, @Code, @BankNoteBuying, @BankNoteSelling, cast(getdate() as date))";
-                                using (SqlCommand command = new SqlCommand(query, connection))
-                                {
-                                    command.Parameters.AddWithValue("@id", currency.Id);
-                                    command.Parameters.AddWithValue("@Date", DateTime.Today);
-                                    command.Parameters.AddWithValue("@BuyRate", currency.BuyRate);
-                                    command.Parameters.AddWithValue("@SellRate", currency.SellRate);
-                                    command.Parameters.AddWithValue("@Code", currency.Code);
-                                    command.Parameters.AddWithValue("@BankNoteBuying", currency.BankNoteBuying);
-                                    command.Parameters.AddWithValue("@BankNoteSelling", currency.BankNoteSelling);
+                                command.Parameters.AddWithValue("@id", currency.Id);
+                                command.Parameters.AddWithValue("@Date", DateTime.Today);
+                                command.Parameters.AddWithValue("@BuyRate", currency.BuyRate);
+                                command.Parameters.AddWithValue("@SellRate", currency.SellRate);
+                                command.Parameters.AddWithValue("@Code", currency.Code);
+                                command.Parameters.AddWithValue("@BankNoteBuying", currency.BankNoteBuying);
+                                command.Parameters.AddWithValue("@BankNoteSelling", currency.BankNoteSelling);
 
-                                    command.ExecuteNonQuery();
-                                }
-
+                                command.ExecuteNonQuery();
                             }
                         }
                     }
@@ -152,11 +175,7 @@ public class CurrencyFetcher
             }
             catch (Exception ex)
             {
-                string filePath = @"C:\Kurlar\logs.txt";
-                using (StreamWriter writer = new StreamWriter(filePath, true))
-                {
-                    writer.WriteLine($"Exception: {ex.Message}");
-                }
+                AppendLog($"{DateTime.Now}: Exception: {ex.Message}");
 
                 string addressFrom = ConfigurationManager.AppSettings["AddressFrom"];
                 string displayNameFrom = ConfigurationManager.AppSettings["DisplayNameFrom"];
@@ -189,10 +208,7 @@ public class CurrencyFetcher
                 }
                 catch (Exception emailEx)
                 {
-                    using (StreamWriter writer = new StreamWriter(filePath, true))
-                    {
-                        writer.WriteLine($"Failed to send email: {emailEx.Message}");
-                    }
+                    AppendLog($"{DateTime.Now}: Failed to send email: {emailEx.Message}");
 
                 }
             }

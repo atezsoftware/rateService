@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="CurrencyFetcher.cs" />
     <Compile Include="MetalFetcher.cs" />
+    <Compile Include="NetRuntime.cs" />
     <Compile Include="ProjectInstaller .cs">
       <SubType>Component</SubType>
     </Compile>

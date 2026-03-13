@@ -70,6 +70,9 @@ namespace rateService
             try
             {
                 string filePath = @"C:\Kurlar\logs.txt";
+                var dir = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
                 using (StreamWriter writer = new StreamWriter(filePath, true))
                 {
                     writer.WriteLine($"{DateTime.Now}: {message}");
