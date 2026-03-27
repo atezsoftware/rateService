@@ -22,7 +22,7 @@ public class CurrencyFetcher
 
         string url = GetUrl();
         List<Currency> currencies = FetchCurrencies(url);
-       // WriteToFile(currencies);
+        WriteToFile(currencies);
         WriteToDatabase(currencies);
 
     }
@@ -102,6 +102,25 @@ public class CurrencyFetcher
         catch
         {
             // loglama hatası sessizce yutulsun
+        }
+    }
+
+    private static void WriteToFile(List<Currency> currencies)
+    {
+        try
+        {
+            string filePath = @"C:\Kurlar\kurlar.txt";
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                foreach (var currency in currencies)
+                {
+                    writer.WriteLine($"{DateTime.Now}: {currency.Code} - Alış: {currency.BuyRate} - Satış: {currency.SellRate}");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            AppendLog($"{DateTime.Now}: Currency WriteToFile Error - {e.Message}");
         }
     }
 

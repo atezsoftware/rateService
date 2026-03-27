@@ -24,7 +24,7 @@ public class MetalFetcher
         List<Currency> metals = FetchMetals();
         if (metals != null && metals.Count > 0)
         {
-           // WriteToFile(metals);
+            WriteToFile(metals);
             WriteToDatabase(metals);
         }
     }
@@ -87,22 +87,21 @@ public class MetalFetcher
 
         var metals = new List<Currency>();
 
-        // ALTIN - kapanis değeri
+        // ALTIN - XML kapanis değeri
         var altinElement = document.Descendants("ALTIN").FirstOrDefault();
         if (altinElement != null)
         {
             var seansYtl = altinElement.Element("SEANSytl");
             if (seansYtl != null)
             {
-                var kapanisElement = seansYtl.Element("kapanis");
-                if (kapanisElement != null && kapanisElement.Value.Length > 0)
+                decimal? kapanis = ParseMetalRate(seansYtl.Element("kapanis"));
+                if (kapanis.HasValue)
                 {
-                    decimal kapanis = Math.Round(ParseTurkishDecimal(kapanisElement.Value) / 1000M, 4);
                     metals.Add(new Currency
                     {
                         Code = "ALT",
                         Date = xmlDate,
-                        BuyRate = kapanis,
+                        BuyRate = kapanis.Value,
                         SellRate = 0M,
                         BankNoteBuying = 0M,
                         BankNoteSelling = 0M
@@ -111,22 +110,21 @@ public class MetalFetcher
             }
         }
 
-        // GUMUS - onceki_kapanis değeri
+        // GUMUS - XML kapanis değeri
         var gumusElement = document.Descendants("GUMUS").FirstOrDefault();
         if (gumusElement != null)
         {
             var seansYtl = gumusElement.Element("SEANSytl");
             if (seansYtl != null)
             {
-                var oncekiKapanisElement = seansYtl.Element("onceki_kapanis");
-                if (oncekiKapanisElement != null && oncekiKapanisElement.Value.Length > 0)
+                decimal? kapanis = ParseMetalRate(seansYtl.Element("kapanis"));
+                if (kapanis.HasValue)
                 {
-                    decimal oncekiKapanis = Math.Round(ParseTurkishDecimal(oncekiKapanisElement.Value) / 1000M, 4);
                     metals.Add(new Currency
                     {
                         Code = "GMS",
                         Date = xmlDate,
-                        BuyRate = oncekiKapanis,
+                        BuyRate = kapanis.Value,
                         SellRate = 0M,
                         BankNoteBuying = 0M,
                         BankNoteSelling = 0M
@@ -142,6 +140,15 @@ public class MetalFetcher
     {
         // "7.415.000,00" -> "7415000,00" -> "7415000.00"
         return decimal.Parse(value.Replace(".", "").Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static decimal? ParseMetalRate(XElement rateElement)
+    {
+        if (rateElement == null || string.IsNullOrWhiteSpace(rateElement.Value))
+            return null;
+
+        decimal rate = Math.Round(ParseTurkishDecimal(rateElement.Value) / 1000M, 4);
+        return rate;
     }
 
     private static SqlParameter CreateDecimalParam(string name, decimal value)
@@ -210,6 +217,16 @@ public class MetalFetcher
                     // Her metal için bugün kaydı yoksa ekle
                     foreach (var metal in metals)
                     {
+                        decimal buyRateToWrite = metal.BuyRate;
+                        if (buyRateToWrite == 0M)
+                        {
+                            buyRateToWrite = GetPreviousWrittenBuyRate(connection, metal.Code, DateTime.Today);
+                            if (buyRateToWrite > 0M)
+                            {
+                                AppendLog($"{DateTime.Now}: {metal.Code} XML değeri 0 geldi, bir önceki kayıt değeri kullanıldı: {buyRateToWrite}");
+                            }
+                        }
+
                         string query = @"IF NOT EXISTS (SELECT 1 FROM sbr_dovizdetay WHERE dovizkod = @Code AND cast(tarih as date) = @Date)
                             BEGIN
                                 INSERT INTO sbr_dovizdetay (dovizdetayid, tarih, dovizalis, dovizsatis, dovizkod, efektifalis, efektifsatis, kayitgiristarih) 
@@ -221,7 +238,7 @@ public class MetalFetcher
                             command.Parameters.AddWithValue("@Date", DateTime.Today);
                             command.Parameters.AddWithValue("@Code", metal.Code);
 
-                            command.Parameters.Add(CreateDecimalParam("@BuyRate", metal.BuyRate));
+                            command.Parameters.Add(CreateDecimalParam("@BuyRate", buyRateToWrite));
                             command.Parameters.Add(CreateDecimalParam("@SellRate", metal.SellRate));
                             command.Parameters.Add(CreateDecimalParam("@BankNoteBuying", metal.BankNoteBuying));
                             command.Parameters.Add(CreateDecimalParam("@BankNoteSelling", metal.BankNoteSelling));
@@ -269,6 +286,28 @@ public class MetalFetcher
                     AppendLog($"{DateTime.Now}: Failed to send email: {emailEx.Message}");
                 }
             }
+        }
+    }
+
+    private static decimal GetPreviousWrittenBuyRate(SqlConnection connection, string code, DateTime currentDate)
+    {
+        const string query = @"SELECT TOP 1 dovizalis
+FROM sbr_dovizdetay
+WHERE dovizkod = @Code
+  AND cast(tarih as date) < @Date
+  AND dovizalis > 0
+ORDER BY cast(tarih as date) DESC, kayitgiristarih DESC";
+
+        using (SqlCommand command = new SqlCommand(query, connection))
+        {
+            command.Parameters.AddWithValue("@Code", code);
+            command.Parameters.AddWithValue("@Date", currentDate.Date);
+
+            object result = command.ExecuteScalar();
+            if (result == null || result == DBNull.Value)
+                return 0M;
+
+            return Convert.ToDecimal(result);
         }
     }
 }
